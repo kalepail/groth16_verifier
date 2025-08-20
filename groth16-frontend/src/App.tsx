@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { Buffer } from 'buffer'
 import { Client as VerifierClient } from 'verifier-sdk'
-import { Keypair, Networks, contract } from '@stellar/stellar-sdk'
+import { 
+  // Keypair, 
+  Networks, 
+  // contract 
+} from '@stellar/stellar-sdk'
 
 // Mock contract ID for testnet (user can replace this later)
 const CONTRACT_ID = 'CDO3X7KEORX4VT4PZAQ6PE4APKF3JZ6WBFMARB25SAHO5RFHE3XH5KAO'
