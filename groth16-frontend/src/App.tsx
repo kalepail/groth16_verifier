@@ -31,7 +31,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
   const [contractResult, setContractResult] = useState<any>(null)
-  const [secretKey, setSecretKey] = useState('SDK7UGCN6FMRNG6UQU3GCYW56JB4PYQJ4D3UQZFTEB6ISF5FIM5PPIOS')
+  // const [secretKey, setSecretKey] = useState('SDK7UGCN6FMRNG6UQU3GCYW56JB4PYQJ4D3UQZFTEB6ISF5FIM5PPIOS')
 
   // Generate proof using snarkjs
   const generateProof = async () => {
@@ -224,25 +224,27 @@ function App() {
 
   // Verify proof on Stellar contract
   const verifyOnContract = async () => {
-    if (!proof || !verificationKey || !publicSignals || !secretKey) {
+    if (!proof || !verificationKey || !publicSignals 
+      // || !secretKey
+      ) {
       alert('Please generate a proof and provide a secret key first')
       return
     }
 
     setIsVerifying(true)
     try {
-      const keypair = Keypair.fromSecret(secretKey)
+      // const keypair = Keypair.fromSecret(secretKey)
       
       // Create signer for the client
-      const walletSigner = contract.basicNodeSigner(keypair, Networks.TESTNET)
+      // const walletSigner = contract.basicNodeSigner(keypair, Networks.TESTNET)
 
       const client = new VerifierClient({
         contractId: CONTRACT_ID,
         networkPassphrase: Networks.TESTNET,
         rpcUrl: SOROBAN_RPC_URL,
         allowHttp: false,
-        publicKey: keypair.publicKey(),
-        ...walletSigner,
+        // publicKey: keypair.publicKey(),
+        // ...walletSigner,
       })
 
       // Convert proof and verification key to the format expected by the contract
@@ -363,7 +365,7 @@ function App() {
 
       <div style={{ marginBottom: '20px' }}>
         <h3>Stellar Contract Verification</h3>
-        <div style={{ marginBottom: '10px' }}>
+        {/* <div style={{ marginBottom: '10px' }}>
           <label>
             Secret Key (for signing transactions): 
             <input 
@@ -374,7 +376,7 @@ function App() {
               style={{ marginLeft: '10px', padding: '5px', width: '300px' }}
             />
           </label>
-        </div>
+        </div> */}
         <div style={{ marginBottom: '10px' }}>
           <strong>Contract ID: </strong>
           <code>{CONTRACT_ID}</code>
@@ -419,7 +421,7 @@ function App() {
         <ol>
           <li>Enter two numbers for the multiplication circuit</li>
           <li>Click "Generate Proof" to create a zero-knowledge proof that you know a and b such that c = a * b</li>
-          <li>Enter a Stellar testnet secret key (fund it at https://laboratory.stellar.org)</li>
+          {/* <li>Enter a Stellar testnet secret key (fund it at https://laboratory.stellar.org)</li> */}
           <li>Click "Verify on Stellar Contract" to submit the proof to the blockchain</li>
         </ol>
         <p><strong>Note:</strong> Replace the mock contract ID with your deployed contract address.</p>
