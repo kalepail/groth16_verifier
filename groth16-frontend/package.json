@@ -1,0 +1,36 @@
+{
+  "name": "groth16-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview",
+    "compile-circuits": "node compile-circuits.js",
+    "setup-circuits": "node setup-circuits.js",
+    "prepare-circuits": "npm run compile-circuits && npm run setup-circuits"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "^14.0.0",
+    "buffer": "^6.0.3",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "snarkjs": "^0.7.5",
+    "verifier-sdk": "file:../verifier-sdk"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.1",
+    "eslint": "^9.33.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3"
+  }
+}

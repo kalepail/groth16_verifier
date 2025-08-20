@@ -1,0 +1,276 @@
+# Groth16 Zero-Knowledge Proof Verifier
+
+A complete zero-knowledge proof ecosystem demonstrating Groth16 proof generation and verification on the Stellar blockchain. This project showcases how to implement privacy-preserving computations using Soroban smart contracts and modern web technologies.
+
+## 🌟 Project Overview
+
+This project provides a full-stack implementation of Groth16 zero-knowledge proof verification, featuring:
+
+- **🔗 Soroban Smart Contract**: On-chain proof verification using BLS12-381 elliptic curves
+- **⚛️ React Frontend**: Interactive web application for proof generation and verification
+- **📦 TypeScript SDK**: Client library for seamless contract integration
+- **🔐 Circuit Implementation**: Demonstrative multiplication circuit (a × b = c)
+
+The system allows users to prove knowledge of two private numbers that multiply to a known result without revealing the private inputs.
+
+## 🏗️ Architecture
+
+### Core Components
+
+1. **Smart Contract** (`src/lib.rs`)
+   - Implements Groth16 verification algorithm
+   - Uses Soroban SDK's native BLS12-381 operations
+   - Validates proofs against verification keys on-chain
+
+2. **Frontend Application** (`groth16-frontend/`)
+   - React + Vite application with TypeScript
+   - Integrates with snarkjs for client-side proof generation
+   - Stellar SDK integration for blockchain interactions
+
+3. **Verifier SDK** (`verifier-sdk/`)
+   - Auto-generated TypeScript bindings from contract
+   - Provides type-safe contract interactions
+   - Handles proof serialization and deserialization
+
+### Circuit Details
+
+The demonstration circuit (`data/auxiliary/multiplier2.circom`) implements a simple multiplication constraint:
+
+```circom
+template Multiplier2 () {  
+   signal input a;     // Private input
+   signal input b;     // Private input  
+   signal output c;    // Public output
+   c <== a * b;        // Constraint: c must equal a × b
+}
+```
+
+**Privacy Properties:**
+- Proves knowledge of `a` and `b` without revealing their values
+- Only the product `c` is publicly visible
+- Zero-knowledge: no information leaked beyond the validity of the statement
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Rust** (1.85.0+) with `wasm32v1-none` target
+- **Node.js** (18+) and npm/pnpm
+- **Stellar CLI** for contract deployment
+- **Circom** (2.2.1+) for circuit compilation
+
+### Installation
+
+1. **Clone and setup the project:**
+   ```bash
+   git clone <repository-url>
+   cd groth16_verifier
+   ```
+
+2. **Build the smart contract:**
+   ```bash
+   make build
+   # Or manually:
+   stellar contract build
+   ```
+
+3. **Setup the frontend:**
+   ```bash
+   cd groth16-frontend
+   npm install
+   npm run prepare-circuits  # Compiles circuit and copies files
+   ```
+
+4. **Build the SDK:**
+   ```bash
+   cd ../verifier-sdk
+   npm install
+   npm run build
+   ```
+
+### Running the Application
+
+1. **Start the frontend:**
+   ```bash
+   cd groth16-frontend
+   npm run dev
+   ```
+
+2. **Open http://localhost:5173** in your browser
+
+3. **Generate and verify proofs:**
+   - Enter two numbers (e.g., a=3, b=11)
+   - Click "Generate Proof" to create a ZK proof
+   - Enter a Stellar testnet secret key
+   - Click "Verify on Stellar Contract" to verify on-chain
+
+## 📁 Directory Structure
+
+```
+groth16_verifier/
+├── src/                          # Soroban smart contract
+│   ├── lib.rs                   # Main contract implementation
+│   └── test.rs                  # Contract unit tests
+├── groth16-frontend/            # React web application
+│   ├── src/
+│   │   └── App.tsx             # Main application component
+│   ├── public/circuits/        # Compiled circuit files
+│   ├── compile-circuits.js     # Circuit compilation script
+│   └── setup-circuits.js      # Circuit setup script
+├── verifier-sdk/               # TypeScript SDK
+│   └── src/index.ts           # Generated contract bindings
+├── data/                       # Circuit artifacts and test data
+│   ├── proof.json             # Sample proof
+│   ├── verification_key.json  # Sample verification key
+│   ├── public.json            # Sample public inputs
+│   └── auxiliary/             # Circuit compilation artifacts
+│       ├── multiplier2.circom # Circuit source code
+│       ├── multiplier2.wasm   # Compiled circuit
+│       └── *.zkey            # Proving/verification keys
+└── Makefile                   # Build automation
+```
+
+## 🔧 Development Workflow
+
+### Contract Development
+
+```bash
+# Build contract
+make build
+
+# Run tests
+make test
+
+# Format code
+make fmt
+
+# Deploy to testnet (requires Stellar CLI setup)
+stellar contract deploy \
+  --wasm target/wasm32v1-none/release/soroban_groth16_verifier_contract.wasm \
+  --source <DEPLOYER_ACCOUNT> \
+  --network testnet
+```
+
+### Frontend Development
+
+```bash
+# Development server with hot reload
+npm run dev
+
+# Build for production
+npm run build
+
+# Recompile circuits after changes
+npm run prepare-circuits
+
+# Type checking
+npm run typecheck
+```
+
+### Circuit Development
+
+Circuit compilation is handled automatically, but you can also run these commands manually:
+
+```bash
+# Compile circuit
+circom data/auxiliary/multiplier2.circom --r1cs --wasm --sym -o data/auxiliary/
+
+# Generate powers of tau (if needed)
+snarkjs powersoftau new bn128 12 data/auxiliary/pot12_0000.ptau -v
+
+# Generate proving key
+snarkjs groth16 setup data/auxiliary/multiplier2.r1cs data/auxiliary/pot12_final.ptau data/auxiliary/multiplier2_0001.zkey
+```
+
+## 🔐 Security Considerations
+
+### ⚠️ Important Warnings
+
+**This project is for demonstration purposes only and should NOT be used in production without proper security auditing.**
+
+### Known Limitations
+
+1. **Trusted Setup**: Uses a basic powers-of-tau ceremony (not production-grade)
+2. **Circuit Complexity**: Simple multiplication circuit doesn't represent real-world use cases
+3. **Key Management**: Frontend stores private keys in localStorage (insecure)
+4. **Contract Deployment**: Uses mock contract IDs for testing
+5. **Input Validation**: Limited validation on user inputs
+
+### Recommended Security Practices
+
+- Use properly conducted trusted setup ceremonies
+- Implement comprehensive input validation
+- Use secure key management solutions
+- Conduct thorough security audits
+- Implement proper error handling and logging
+- Use formal verification for circuit correctness
+
+## 🛠️ Technologies Used
+
+### Smart Contract
+- **Soroban SDK** (22.0.8): Stellar smart contract framework
+- **BLS12-381**: Elliptic curve cryptography for pairing operations
+- **Ark Crypto**: Rust cryptographic primitives
+
+### Frontend
+- **React** (19.1.1): UI framework
+- **Vite**: Build tool and development server
+- **TypeScript**: Type-safe development
+- **snarkjs**: Zero-knowledge proof generation
+- **Stellar SDK**: Blockchain interactions
+
+### Circuit & Cryptography
+- **Circom** (2.2.1): Circuit compiler
+- **Groth16**: Zero-knowledge proof system
+- **BLS12-381**: Elliptic curve for efficient pairings
+
+## 🔄 Proof Generation Process
+
+1. **Circuit Compilation**: Circom compiles `.circom` to R1CS constraints
+2. **Trusted Setup**: Generate proving/verification keys via powers of tau
+3. **Witness Generation**: Calculate intermediate values for specific inputs
+4. **Proof Generation**: Create Groth16 proof using witness and proving key
+5. **Verification**: Validate proof using verification key and public inputs
+6. **On-Chain Verification**: Submit proof to Soroban contract for final validation
+
+## 🚀 Future Enhancements
+
+### Planned Features
+- [ ] **Enhanced Circuits**: More complex computational examples
+- [ ] **Batch Verification**: Verify multiple proofs in single transaction
+- [ ] **Circuit Upgradability**: Dynamic circuit loading and verification
+- [ ] **Privacy Features**: Anonymous proof submission
+- [ ] **Performance Optimization**: Gas-efficient contract implementations
+
+### Integration Opportunities
+- [ ] **DeFi Applications**: Private trading and liquidity provision
+- [ ] **Identity Verification**: Anonymous credential systems
+- [ ] **Voting Systems**: Private ballot casting with public tallying
+- [ ] **Supply Chain**: Private supply chain verification
+
+## 📚 Educational Resources
+
+This project was featured in:
+- [Stellar Developer Meeting - 12/19/2024](https://www.youtube.com/watch?v=51SitOUZySk&list=PLmr3tp_7-7Gg5IAsJ0VlgfMoh-aTmbQmh&index=4) (BLS12-381 features demonstration)
+
+### Additional Learning
+- [Circom Documentation](https://docs.circom.io/)
+- [Soroban Documentation](https://developers.stellar.org/docs/smart-contracts)
+- [Zero-Knowledge Proofs: An Illustrated Primer](https://blog.cryptographyengineering.com/2014/11/27/zero-knowledge-proofs-illustrated-primer/)
+
+## 🤝 Contributing
+
+Contributions are welcome! Please consider:
+
+1. **Security First**: Any cryptographic changes require thorough review
+2. **Documentation**: Update documentation for any new features
+3. **Testing**: Ensure comprehensive test coverage
+4. **Performance**: Consider gas costs for contract modifications
+
+## 📄 License
+
+This project is licensed under the MIT License. See individual files for specific license headers.
+
+---
+
+**⚠️ Disclaimer**: This is experimental software intended for educational and demonstration purposes. Do not use in production environments without proper security auditing and review.
