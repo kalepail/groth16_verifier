@@ -360,12 +360,12 @@ function App() {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {manipulatedPublicSignals.map((signal, index) => (
-              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <label style={{
-                  minWidth: '120px',
                   fontSize: '14px',
                   fontWeight: '500',
-                  color: '#ffffff'
+                  color: '#ffffff',
+                  whiteSpace: 'nowrap'
                 }}>
                   Signal {index}:
                 </label>
@@ -392,7 +392,8 @@ function App() {
                 <span style={{
                   fontSize: '12px',
                   color: '#cccccc',
-                  minWidth: '100px'
+                  marginLeft: '10px',
+                  whiteSpace: 'nowrap'
                 }}>
                   Original: <code style={{ backgroundColor: '#444', color: '#87ceeb', padding: '2px 5px', borderRadius: '3px', fontWeight: 'bold' }}>{publicSignals?.[index]}</code>
                 </span>
