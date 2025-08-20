@@ -32,6 +32,7 @@ function App() {
   const [proof, setProof] = useState<ProofData | null>(null)
   const [verificationKey, setVerificationKey] = useState<VerificationKey | null>(null)
   const [publicSignals, setPublicSignals] = useState<string[] | null>(null)
+  const [manipulatedPublicSignals, setManipulatedPublicSignals] = useState<string[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
   const [contractResult, setContractResult] = useState<any>(null)
@@ -102,7 +103,10 @@ function App() {
       console.log('Formatted proof:', formattedProof)
       
       setProof(formattedProof)
-      setPublicSignals(publicSignals.map((signal: any) => signal.toString()))
+      const publicSignalsArray = publicSignals.map((signal: any) => signal.toString())
+      setPublicSignals(publicSignalsArray)
+      // Initialize the manipulation fields with the original signals
+      setManipulatedPublicSignals([...publicSignalsArray])
 
       // Load verification key
       const vkResponse = await fetch('/circuits/verification_key.json')
@@ -228,10 +232,10 @@ function App() {
 
   // Verify proof on Stellar contract
   const verifyOnContract = async () => {
-    if (!proof || !verificationKey || !publicSignals 
+    if (!proof || !verificationKey || !publicSignals || manipulatedPublicSignals.length === 0
       // || !secretKey
       ) {
-      alert('Please generate a proof and provide a secret key first')
+      alert('Please generate a proof first')
       return
     }
 
@@ -272,8 +276,10 @@ function App() {
         y1: segHex(stellarProof.b, 144),
       })
 
-      // Convert public signals to u256 format
-      const stellarPublicSignals = publicSignals.map((signal: string) => BigInt(signal))
+      // Use manipulated public signals and convert to u256 format
+      const stellarPublicSignals = manipulatedPublicSignals.map((signal: string) => BigInt(signal))
+      
+      console.log('Using manipulated public signals:', manipulatedPublicSignals)
 
       console.log('Calling contract with:', {
         vk: stellarVK,
@@ -306,29 +312,29 @@ function App() {
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Groth16 Proof Generator & Stellar Verifier</h1>
+      <h1 style={{ color: '#ffffff', marginBottom: '20px' }}>Groth16 Proof Generator & Stellar Verifier</h1>
       
       <div style={{ marginBottom: '20px' }}>
-        <h3>Circuit: Multiplier2 (c = a * b)</h3>
+        <h3 style={{ color: '#ffffff', marginBottom: '15px' }}>Circuit: Multiplier2 (c = a * b)</h3>
         <div style={{ marginBottom: '10px' }}>
-          <label>
+          <label style={{ color: '#ffffff', fontSize: '14px', fontWeight: '500' }}>
             Input a: 
             <input 
               type="number" 
               value={inputs.a} 
               onChange={(e) => setInputs(prev => ({...prev, a: e.target.value}))}
-              style={{ marginLeft: '10px', padding: '5px' }}
+              style={{ marginLeft: '10px', padding: '6px 8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px', width: '200px' }}
             />
           </label>
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <label>
+          <label style={{ color: '#ffffff', fontSize: '14px', fontWeight: '500' }}>
             Input b: 
             <input 
               type="number" 
               value={inputs.b} 
               onChange={(e) => setInputs(prev => ({...prev, b: e.target.value}))}
-              style={{ marginLeft: '10px', padding: '5px' }}
+              style={{ marginLeft: '10px', padding: '6px 8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px', width: '200px' }}
             />
           </label>
         </div>
@@ -342,7 +348,8 @@ function App() {
             color: 'white', 
             border: 'none', 
             borderRadius: '4px',
-            cursor: isGenerating ? 'not-allowed' : 'pointer'
+            cursor: isGenerating ? 'not-allowed' : 'pointer',
+            marginTop: '5px'
           }}
         >
           {isGenerating ? 'Generating Proof...' : 'Generate Proof'}
@@ -351,7 +358,7 @@ function App() {
 
       {proof && (
         <div style={{ marginBottom: '20px' }}>
-          <h3>Generated Proof</h3>
+          <h3 style={{ color: '#ffffff', marginBottom: '10px' }}>Generated Proof</h3>
           <pre style={{ 
             backgroundColor: '#f5f5f5', 
             color: '#333', 
@@ -367,8 +374,61 @@ function App() {
         </div>
       )}
 
+      {proof && manipulatedPublicSignals.length > 0 && (
+        <div style={{ marginBottom: '20px' }}>
+          <h3 style={{ color: '#e74c3c', marginBottom: '10px' }}>🔧 Manipulate Public Signals (for testing verification failure)</h3>
+          <p style={{ fontSize: '14px', color: '#ffffff', marginBottom: '15px', lineHeight: '1.4' }}>
+            Edit the public signals below to forge/modify the proof data. This should cause verification to fail and return <code style={{ backgroundColor: '#333', color: '#ff6b6b', padding: '3px 6px', borderRadius: '3px', fontWeight: 'bold' }}>false</code>.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {manipulatedPublicSignals.map((signal, index) => (
+              <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <label style={{ 
+                  minWidth: '120px', 
+                  fontSize: '14px', 
+                  fontWeight: '500',
+                  color: '#ffffff'
+                }}>
+                  Signal {index}:
+                </label>
+                <input
+                  type="text"
+                  value={signal}
+                  onChange={(e) => {
+                    const newSignals = [...manipulatedPublicSignals]
+                    newSignals[index] = e.target.value
+                    setManipulatedPublicSignals(newSignals)
+                  }}
+                  style={{
+                    width: '200px',
+                    padding: '6px 8px',
+                    fontSize: '14px',
+                    fontFamily: 'monospace',
+                    border: '2px solid #e74c3c',
+                    borderRadius: '4px',
+                    backgroundColor: '#fff5f5',
+                    color: '#333',
+                    outline: 'none'
+                  }}
+                />
+                <span style={{ 
+                  fontSize: '12px', 
+                  color: '#cccccc',
+                  minWidth: '100px'
+                }}>
+                  Original: <code style={{ backgroundColor: '#444', color: '#87ceeb', padding: '2px 5px', borderRadius: '3px', fontWeight: 'bold' }}>{publicSignals?.[index]}</code>
+                </span>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: '13px', color: '#ffb3b3', marginTop: '12px', fontWeight: '500', lineHeight: '1.3' }}>
+            💡 Try changing any values to see verification fail. The proof was generated for the original values shown on the right.
+          </div>
+        </div>
+      )}
+
       <div style={{ marginBottom: '20px' }}>
-        <h3>Stellar Contract Verification</h3>
+        <h3 style={{ color: '#ffffff', marginBottom: '15px' }}>Stellar Contract Verification</h3>
         {/* <div style={{ marginBottom: '10px' }}>
           <label>
             Secret Key (for signing transactions): 
@@ -381,9 +441,9 @@ function App() {
             />
           </label>
         </div> */}
-        <div style={{ marginBottom: '10px' }}>
-          <strong>Contract ID: </strong>
-          <code>{CONTRACT_ID}</code>
+        <div style={{ marginBottom: '15px' }}>
+          <strong style={{ color: '#ffffff' }}>Contract ID: </strong>
+          <code style={{ backgroundColor: '#333', color: '#87ceeb', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>{CONTRACT_ID}</code>
         </div>
         <button 
           onClick={verifyOnContract} 
@@ -395,7 +455,8 @@ function App() {
             color: 'white', 
             border: 'none', 
             borderRadius: '4px',
-            cursor: (isVerifying || !proof) ? 'not-allowed' : 'pointer'
+            cursor: (isVerifying || !proof) ? 'not-allowed' : 'pointer',
+            marginTop: '5px'
           }}
         >
           {isVerifying ? 'Verifying on Contract...' : 'Verify on Stellar Contract'}
@@ -404,7 +465,7 @@ function App() {
 
       {contractResult && (
         <div style={{ marginBottom: '20px' }}>
-          <h3>Contract Verification Result</h3>
+          <h3 style={{ color: '#ffffff', marginBottom: '10px' }}>Contract Verification Result</h3>
           <pre style={{ 
             backgroundColor: '#f0f8ff', 
             color: '#333', 
@@ -420,15 +481,15 @@ function App() {
         </div>
       )}
 
-      <div style={{ marginTop: '40px', fontSize: '12px', color: '#666' }}>
-        <p><strong>Instructions:</strong></p>
+      <div style={{ marginTop: '40px', fontSize: '13px', color: '#cccccc', lineHeight: '1.4' }}>
+        <p><strong style={{ color: '#ffffff', fontSize: '14px' }}>Instructions:</strong></p>
         <ol>
           <li>Enter two numbers for the multiplication circuit</li>
           <li>Click "Generate Proof" to create a zero-knowledge proof that you know a and b such that c = a * b</li>
+          <li><strong>Optional:</strong> Modify the public signals in the red manipulation field to forge/tamper with the proof</li>
           {/* <li>Enter a Stellar testnet secret key (fund it at https://laboratory.stellar.org)</li> */}
-          <li>Click "Verify on Stellar Contract" to submit the proof to the blockchain</li>
+          <li>Click "Verify on Stellar Contract" to submit the proof to the blockchain (should return false if signals were tampered)</li>
         </ol>
-        <p><strong>Note:</strong> Replace the mock contract ID with your deployed contract address.</p>
       </div>
     </div>
   )
